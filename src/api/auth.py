@@ -23,8 +23,17 @@ SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 # Clerk JWKS endpoint for verifying JWTs. Must be set explicitly per
 # environment (dev instance at *.clerk.accounts.dev, production at
 # clerk.<yourdomain>) — no default so a misconfigured deploy fails loudly.
-CLERK_JWKS_URL = os.environ["CLERK_JWKS_URL"]
-_jwks_client = PyJWKClient(CLERK_JWKS_URL, cache_keys=True)
+# Personal mode: when LOCAL_USER_ID is set, every request is treated as that
+# user and no JWT is checked. Only for running the backend locally for
+# yourself. Never set it on a deployed server.
+LOCAL_USER_ID = os.getenv("LOCAL_USER_ID") or None
+
+if LOCAL_USER_ID:
+    print(f"[auth] personal mode: all requests run as {LOCAL_USER_ID}, JWTs are not checked")
+    _jwks_client = None
+else:
+    CLERK_JWKS_URL = os.environ["CLERK_JWKS_URL"]
+    _jwks_client = PyJWKClient(CLERK_JWKS_URL, cache_keys=True)
 
 _bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -33,6 +42,9 @@ async def verify_jwt(
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
 ) -> str:
     """Verify the Clerk JWT via JWKS and return the user_id."""
+    if LOCAL_USER_ID:
+        return LOCAL_USER_ID
+
     if credentials is None:
         raise HTTPException(status_code=401, detail="Missing authorization token")
 

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from "react-native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth } from "../../lib/auth";
 import { useNavigation } from "@react-navigation/native";
 import LanguageModal from "./settings/LanguageModal";
 import ProfileModal from "./ProfileModal";

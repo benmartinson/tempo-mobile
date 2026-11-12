@@ -20,7 +20,7 @@ import { useSelector, useDispatch } from "react-redux";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth } from "../../../lib/auth";
 import * as FileSystem from "expo-file-system/legacy";
 import {
   AutoReviewDetails,

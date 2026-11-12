@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useAuth } from "@clerk/clerk-expo";
+import { AUTH_BYPASS, useAuth } from "../lib/auth";
 import { clearClerkAuth, withClerkAuth } from "../lib/clerkAuth";
 import { supabase } from "../lib/supabase";
 
@@ -13,6 +13,8 @@ export function useSupabaseWithClerk() {
   const { getToken, isLoaded, isSignedIn } = useAuth();
 
   useEffect(() => {
+    // Personal mode: the client already uses the service role key.
+    if (AUTH_BYPASS) return;
     if (!isLoaded) return;
     if (!isSignedIn) {
       clearClerkAuth();

@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../types";
 import { useSupabaseWithClerk } from "../../utils/supabase";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth } from "../../lib/auth";
 
 /**
  * Hook that syncs currentSentence changes to the user_ui_state table.

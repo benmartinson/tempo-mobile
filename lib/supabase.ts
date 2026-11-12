@@ -6,6 +6,20 @@ const SUPABASE_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL!;
 const SUPABASE_ANON_KEY =
   Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
 
+// Personal mode (LOCAL_USER_ID set): there is no Clerk token, so use the
+// service role key, which bypasses row-level security. Only for a personal
+// build on your own phone. See lib/auth.tsx.
+const LOCAL_SERVICE_ROLE_KEY: string | undefined = Constants.expoConfig?.extra
+  ?.LOCAL_USER_ID
+  ? Constants.expoConfig?.extra?.LOCAL_SUPABASE_SERVICE_ROLE_KEY
+  : undefined;
+
+if (Constants.expoConfig?.extra?.LOCAL_USER_ID && !LOCAL_SERVICE_ROLE_KEY) {
+  console.warn(
+    "[auth] LOCAL_USER_ID is set but SUPABASE_SERVICE_ROLE_KEY is missing; user data will not load",
+  );
+}
+
 export type ClerkGetToken = (opts?: {
   template?: string;
 }) => Promise<string | null>;
@@ -36,7 +50,10 @@ function createFetchWithClerkToken(): typeof fetch {
 }
 
 if (!g.__tempoSupabase) {
-  g.__tempoSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  g.__tempoSupabase = createClient(
+    SUPABASE_URL,
+    LOCAL_SERVICE_ROLE_KEY ?? SUPABASE_ANON_KEY,
+    {
     global: {
       fetch: createFetchWithClerkToken(),
     },
@@ -47,7 +64,8 @@ if (!g.__tempoSupabase) {
       persistSession: false,
       detectSessionInUrl: false,
     },
-  });
+    },
+  );
 }
 
 export const supabase: SupabaseClient = g.__tempoSupabase;

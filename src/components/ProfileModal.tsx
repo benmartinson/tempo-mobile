@@ -9,9 +9,9 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
-import { useClerk, useUser } from "@clerk/clerk-expo";
+import { useClerk, useUser } from "../../lib/auth";
 import { useDispatch, useSelector } from "react-redux";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth } from "../../lib/auth";
 import SlideModal from "./common/SlideModal";
 import CreditStore from "./CreditStore";
 import TermsOfUseModal from "./TermsOfUseModal";

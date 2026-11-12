@@ -2,7 +2,7 @@ import OAuthButton from "./OAuthButton";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth } from "../../lib/auth";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";

@@ -18,7 +18,7 @@ import {
   Dimensions,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth } from "../../../lib/auth";
 import { useSupabaseWithClerk } from "../../../utils/supabase";
 import {
   AutoReviewDetails,

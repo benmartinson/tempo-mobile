@@ -5,7 +5,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Feather from "@expo/vector-icons/Feather";
 import SentenceSearchModal from "./SentenceSearchModal";
 import { useSupabaseWithClerk } from "../../../utils/supabase";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth } from "../../../lib/auth";
 
 type NavSwitcherProps = {
   onPrev: () => void;

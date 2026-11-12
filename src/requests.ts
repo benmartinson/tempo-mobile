@@ -60,6 +60,7 @@ export const fetchVideoContext = async ({
       .from("video_views")
       .upsert(
         {
+          user_id: userId,
           video_id: recordId,
           watched_at: new Date(),
         },
@@ -319,14 +320,18 @@ export const fetchAllVideos = async ({
 
 export interface FetchUserKnownVocabParams {
   supabase: any;
+  userId?: string | null;
 }
 
 export const fetchUserKnownVocab = async ({
   supabase,
+  userId,
 }: FetchUserKnownVocabParams): Promise<number[]> => {
-  const { data, error } = await supabase
-    .from("user_known_vocab")
-    .select("vocabulary_id");
+  let query = supabase.from("user_known_vocab").select("vocabulary_id");
+  // Filter explicitly so this also works with the service role key, which
+  // ignores row-level security (personal mode).
+  if (userId) query = query.eq("user_id", userId);
+  const { data, error } = await query;
 
   if (error) console.error(error);
 

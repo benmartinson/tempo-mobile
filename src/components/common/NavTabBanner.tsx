@@ -16,7 +16,7 @@ import {
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useSupabaseWithClerk } from "../../../utils/supabase";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth } from "../../../lib/auth";
 import { useNavigation } from "@react-navigation/native";
 import {
   saveLastSentenceWatched,

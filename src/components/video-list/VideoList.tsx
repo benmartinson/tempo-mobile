@@ -16,7 +16,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useSupabaseWithClerk } from "../../../utils/supabase";
 import { supabase as rawSupabase } from "../../../lib/supabase";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth } from "../../../lib/auth";
 import HorizontalVideoScroll from "./HorizontalVideoScroll";
 import VideoSectionHeader from "./VideoSectionHeader";
 import { fetchVideoContext, fetchUserVideoViews } from "../../requests";

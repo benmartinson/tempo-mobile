@@ -33,7 +33,7 @@ import {
   fetchUserCredits,
 } from "./src/requests";
 import { useUIStateSync } from "./src/hooks/useUIStateSync";
-import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
+import { AUTH_BYPASS, ClerkProvider, useAuth } from "./lib/auth";
 import { tokenCache as clerkTokenCache } from "@clerk/clerk-expo/token-cache";
 import { ActivityIndicator, View } from "react-native";
 import TopNavBar from "./src/components/TopNavBar";
@@ -62,7 +62,7 @@ const tokenCache = clerkTokenCache
 
 const publishableKey =
   Constants.expoConfig?.extra?.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
-if (!publishableKey) {
+if (!publishableKey && !AUTH_BYPASS) {
   throw new Error("EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY is not set");
 }
 
@@ -119,12 +119,12 @@ const MainApp: React.FC = () => {
     );
 
     // Fetch user's known vocabulary
-    fetchUserKnownVocab({ supabase: clerkSupabase }).then((vocabIds) => {
+    fetchUserKnownVocab({ supabase: clerkSupabase, userId }).then((vocabIds) => {
       dispatch(setUserKnownVocab(vocabIds));
     });
 
     // Fetch video views
-    fetchUserVideoViews({ supabase: clerkSupabase }).then((videoViews) => {
+    fetchUserVideoViews({ supabase: clerkSupabase, userId }).then((videoViews) => {
       dispatch(setUserVideoViews(videoViews));
     });
 

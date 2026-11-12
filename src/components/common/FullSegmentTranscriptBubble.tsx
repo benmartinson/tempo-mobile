@@ -16,7 +16,7 @@ import {
   updateFocusVocabTranslation,
 } from "../../store/actions/dataActions";
 import { useSupabaseWithClerk } from "../../../utils/supabase";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth } from "../../../lib/auth";
 import { vocabFormatWord, getDisplayWord } from "../../helpers/helpers";
 import { saveFocusVocabTranslation } from "../../requests";
 import { useInterpolatedTime } from "../../hooks/useInterpolatedTime";

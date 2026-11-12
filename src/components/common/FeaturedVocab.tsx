@@ -5,7 +5,7 @@ import { capitalize, vocabFormatWord } from "../../helpers/helpers";
 import { useDispatch, useSelector } from "react-redux";
 import { updateFocusVocabTranslation } from "../../store/actions/dataActions";
 import { useSupabaseWithClerk } from "../../../utils/supabase";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth } from "../../../lib/auth";
 import { MaterialIcons } from "@expo/vector-icons";
 import WordModal from "./WordModal";
 import SignInPromptModal from "./SignInPromptModal";
