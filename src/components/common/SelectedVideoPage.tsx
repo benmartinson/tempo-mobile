@@ -156,8 +156,22 @@ const SelectedVideoPage: React.FC = () => {
 
   const loadTranslationInsights = useCallback(async () => {
     if (!currentSentenceObject?.text || !supabase || !currentVideo) {
+      if (__DEV__) {
+        console.log("[translation] skipped: not ready", {
+          sentenceIndex: currentSentenceIndex,
+          hasSentenceText: !!currentSentenceObject?.text,
+          hasSupabase: !!supabase,
+          hasVideo: !!currentVideo,
+        });
+      }
       setOrderedCharacters([]);
       return;
+    }
+
+    if (__DEV__) {
+      console.log(
+        `[translation] loading sentence ${currentSentenceIndex} (${translationLanguage})`,
+      );
     }
 
     setIsLoadingInsights(true);
@@ -181,6 +195,11 @@ const SelectedVideoPage: React.FC = () => {
         setOrderedCharacters(ordered);
       }
 
+      if (__DEV__) {
+        console.log(
+          `[translation] loaded sentence ${currentSentenceIndex}: ${result.translation ? "got text" : "empty"}`,
+        );
+      }
       setSentenceTranslation({
         index: currentSentenceIndex,
         text: result.translation,

@@ -30,8 +30,31 @@ export async function backendFetch(
     );
   }
 
-  return fetch(`${BACKEND_BASE_URL}${path}`, {
-    ...init,
-    headers,
-  });
+  const url = `${BACKEND_BASE_URL}${path}`;
+  const method = init?.method ?? "GET";
+  const startedAt = Date.now();
+  if (__DEV__) {
+    console.log(`[backend] -> ${method} ${url} (auth: ${token ? "yes" : "no"})`);
+  }
+
+  try {
+    const response = await fetch(url, {
+      ...init,
+      headers,
+    });
+    if (__DEV__) {
+      console.log(
+        `[backend] <- ${response.status} ${method} ${url} (${Date.now() - startedAt}ms)`,
+      );
+    }
+    return response;
+  } catch (err) {
+    if (__DEV__) {
+      console.warn(
+        `[backend] x  ${method} ${url} failed after ${Date.now() - startedAt}ms:`,
+        err,
+      );
+    }
+    throw err;
+  }
 }

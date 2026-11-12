@@ -22,8 +22,8 @@ export const BACKEND_BASE_URL = __DEV__
   ? // ? config?.productionBaseUrl
     config?.devBaseUrl
   : config?.productionBaseUrl;
-// Debug: uncomment to verify which URLs are being used
-// console.log('Environment:', __DEV__ ? 'DEV' : 'PROD', 'Backend:', BACKEND_BASE_URL);
+// Debug: log which backend the app is using (dev only)
+if (__DEV__) console.log('[backend] base URL:', BACKEND_BASE_URL);
 
 export const generateTTS = async (text: string): Promise<string> => {
   const resp = await backendFetch("/tts", {

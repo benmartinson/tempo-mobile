@@ -225,12 +225,21 @@ export const loadSentenceInsights = async ({
     .eq("sentence_index", sentenceIndex)
     .maybeSingle()) as { data: any; error: any };
 
+  if (__DEV__ && cacheError) {
+    console.warn("[translation] Supabase cache lookup failed:", cacheError);
+  }
+
   if (
     !cacheError &&
     cached &&
     cached.proper_nouns &&
     cached[translationColumn]
   ) {
+    if (__DEV__) {
+      console.log(
+        `[translation] sentence ${sentenceIndex}: from Supabase cache (no backend call)`,
+      );
+    }
     return {
       properNouns: cached.proper_nouns,
       translation: cached[translationColumn],
