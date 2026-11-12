@@ -2,74 +2,74 @@ import "react-native-url-polyfill/auto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import Constants from "expo-constants";
 
-const SUPABASE_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL!;
-const SUPABASE_ANON_KEY =
-  Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+/**
+ * Personal version: the app talks to Supabase with the admin (service role)
+ * key from .env. No per-user tokens are created or sent. That key has full
+ * access to the database, so this build must stay on your own phone.
+ */
+const extra = Constants.expoConfig?.extra;
+const SUPABASE_URL: string = extra?.EXPO_PUBLIC_SUPABASE_URL;
+const SUPABASE_ADMIN_KEY: string = extra?.SUPABASE_SERVICE_ROLE_KEY;
 
-// Personal mode (LOCAL_USER_ID set): there is no Clerk token, so use the
-// service role key, which bypasses row-level security. Only for a personal
-// build on your own phone. See lib/auth.tsx.
-const LOCAL_SERVICE_ROLE_KEY: string | undefined = Constants.expoConfig?.extra
-  ?.LOCAL_USER_ID
-  ? Constants.expoConfig?.extra?.LOCAL_SUPABASE_SERVICE_ROLE_KEY
-  : undefined;
-
-if (Constants.expoConfig?.extra?.LOCAL_USER_ID && !LOCAL_SERVICE_ROLE_KEY) {
-  console.warn(
-    "[auth] LOCAL_USER_ID is set but SUPABASE_SERVICE_ROLE_KEY is missing; user data will not load",
+if (!SUPABASE_URL) {
+  throw new Error("EXPO_PUBLIC_SUPABASE_URL is not set in .env");
+}
+if (!SUPABASE_ADMIN_KEY) {
+  throw new Error(
+    "SUPABASE_SERVICE_ROLE_KEY is not set in .env (restart Metro with --clear after adding it)",
   );
 }
 
-export type ClerkGetToken = (opts?: {
-  template?: string;
-}) => Promise<string | null>;
+// Catch the most common setup mistake: a key from a different Supabase
+// project than the URL, or the anon key pasted in place of the admin key.
+// Supabase rejects those with a confusing JWT error.
+function checkAdminKey() {
+  const urlRef = SUPABASE_URL.match(/^https?:\/\/([^.]+)\./)?.[1];
+  const parts = SUPABASE_ADMIN_KEY.split(".");
+  if (parts.length !== 3) {
+    console.log(
+      `[supabase] project ${urlRef}, admin key type: ${SUPABASE_ADMIN_KEY.slice(0, 10)}...`,
+    );
+    return;
+  }
+  try {
+    const payload = JSON.parse(
+      atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")),
+    );
+    console.log(
+      `[supabase] project ${urlRef}, admin key is for project ${payload.ref} with role ${payload.role}`,
+    );
+    if (payload.ref && urlRef && payload.ref !== urlRef) {
+      console.error(
+        `[supabase] WRONG KEY: SUPABASE_SERVICE_ROLE_KEY belongs to project "${payload.ref}" but EXPO_PUBLIC_SUPABASE_URL is project "${urlRef}". Use the key and URL from the same project.`,
+      );
+    }
+    if (payload.role && payload.role !== "service_role") {
+      console.error(
+        `[supabase] WRONG KEY: SUPABASE_SERVICE_ROLE_KEY has role "${payload.role}", expected "service_role".`,
+      );
+    }
+  } catch {
+    console.warn("[supabase] could not read SUPABASE_SERVICE_ROLE_KEY");
+  }
+}
+if (__DEV__) checkAdminKey();
 
 type GlobalCache = typeof globalThis & {
   __tempoSupabase?: SupabaseClient;
-  __tempoClerkSupabaseGetToken?: ClerkGetToken;
 };
 
 const g = globalThis as GlobalCache;
 
-function createFetchWithClerkToken(): typeof fetch {
-  return async (input, init) => {
-    const getToken = g.__tempoClerkSupabaseGetToken;
-    const token = getToken ? await getToken({ template: "supabase" }) : null;
-
-    const baseHeaders =
-      init?.headers ??
-      (typeof Request !== "undefined" && input instanceof Request
-        ? input.headers
-        : undefined);
-
-    const headers = new Headers(baseHeaders);
-    if (token) headers.set("Authorization", `Bearer ${token}`);
-
-    return fetch(input as any, { ...(init ?? {}), headers });
-  };
-}
-
 if (!g.__tempoSupabase) {
-  g.__tempoSupabase = createClient(
-    SUPABASE_URL,
-    LOCAL_SERVICE_ROLE_KEY ?? SUPABASE_ANON_KEY,
-    {
-    global: {
-      fetch: createFetchWithClerkToken(),
-    },
-    // We don't use Supabase Auth sessions (Clerk owns auth).
+  g.__tempoSupabase = createClient(SUPABASE_URL, SUPABASE_ADMIN_KEY, {
     auth: {
       storage: null,
       autoRefreshToken: false,
       persistSession: false,
       detectSessionInUrl: false,
     },
-    },
-  );
+  });
 }
 
 export const supabase: SupabaseClient = g.__tempoSupabase;
-
-export function setClerkSupabaseTokenGetter(getToken?: ClerkGetToken) {
-  g.__tempoClerkSupabaseGetToken = getToken;
-}

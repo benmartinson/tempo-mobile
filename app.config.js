@@ -64,13 +64,11 @@ export default {
         process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY,
       EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
       EXPO_PUBLIC_SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
-      // Personal mode: set LOCAL_USER_ID in .env to skip sign-in and act as
-      // that user. The service role key is only bundled into the app in this
-      // mode. Never set LOCAL_USER_ID for a shared or published build.
+      // Personal version: no sign-in. The app runs as LOCAL_USER_ID and uses
+      // the Supabase admin key, which gets bundled into the app. Never
+      // publish or share a build of this branch.
       LOCAL_USER_ID: process.env.LOCAL_USER_ID,
-      LOCAL_SUPABASE_SERVICE_ROLE_KEY: process.env.LOCAL_USER_ID
-        ? process.env.SUPABASE_SERVICE_ROLE_KEY
-        : undefined,
+      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     },
     owner: "benmartinson92",
   },

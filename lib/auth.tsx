@@ -1,85 +1,70 @@
 /**
- * Auth entry point for the app. Import auth hooks from here, not from
- * "@clerk/clerk-expo" directly.
+ * Auth for the personal version of the app: there is no sign-in and there
+ * are no tokens. The app always runs as one fixed user (LOCAL_USER_ID from
+ * .env, or "local-user" if it isn't set).
  *
- * Normal mode: re-exports Clerk unchanged.
- *
- * Personal mode (LOCAL_USER_ID set in .env): Clerk is skipped entirely and
- * the app always behaves as if that one user is signed in. Supabase is then
- * accessed with the service role key (see lib/supabase.ts), so this mode is
- * only for a personal build on your own phone, never for a shared or
- * published build.
+ * The hooks keep the same names and shapes the app used with Clerk, so the
+ * rest of the code is unchanged.
  */
 import * as React from "react";
 import Constants from "expo-constants";
-import * as Clerk from "@clerk/clerk-expo";
 
-const LOCAL_USER_ID: string | undefined =
-  Constants.expoConfig?.extra?.LOCAL_USER_ID || undefined;
+export const LOCAL_USER_ID: string =
+  Constants.expoConfig?.extra?.LOCAL_USER_ID || "local-user";
 
-export const AUTH_BYPASS = !!LOCAL_USER_ID;
-
-if (__DEV__ && AUTH_BYPASS) {
-  console.log(`[auth] personal mode: signed in as ${LOCAL_USER_ID}`);
+if (__DEV__) {
+  console.log(`[auth] no sign-in: running as user "${LOCAL_USER_ID}"`);
 }
 
-const noTokenGetter = async (_opts?: { template?: string }) => null;
-
-const bypassAuthState = {
-  isLoaded: true as const,
-  isSignedIn: true as const,
-  userId: LOCAL_USER_ID as string,
-  sessionId: "local-session",
-  getToken: noTokenGetter,
-  signOut: async () => {},
+type LocalUser = {
+  id: string;
+  firstName: string | null;
+  lastName: string | null;
+  primaryEmailAddress: { emailAddress: string } | null;
 };
 
-const bypassUser = {
-  id: LOCAL_USER_ID as string,
+const authState = {
+  isLoaded: true,
+  isSignedIn: true,
+  userId: LOCAL_USER_ID as string | null,
+  sessionId: null as string | null,
+};
+
+const localUser: LocalUser = {
+  id: LOCAL_USER_ID,
   firstName: "Me",
   lastName: null,
-  fullName: "Me",
-  imageUrl: undefined,
   primaryEmailAddress: null,
-  emailAddresses: [],
 };
 
-function useBypassAuth(_opts?: unknown) {
-  return bypassAuthState;
+export function useAuth(_opts?: { treatPendingAsSignedOut?: boolean }) {
+  return authState;
 }
 
-function useBypassUser() {
-  return { isLoaded: true, isSignedIn: true, user: bypassUser };
+export function useUser() {
+  return { isLoaded: true, isSignedIn: true, user: localUser as LocalUser | null };
 }
 
-function useBypassClerk() {
-  return { signOut: async () => {} };
+export function useClerk() {
+  return { signOut: async (_opts?: { sessionId?: string }) => {} };
 }
 
-function useBypassSSO() {
+export function useSSO() {
   return {
-    startSSOFlow: async () => {
-      throw new Error("Sign-in is disabled in personal mode");
+    startSSOFlow: async (_opts: {
+      strategy: string;
+      redirectUrl?: string;
+      [key: string]: unknown;
+    }): Promise<{
+      createdSessionId: string | null;
+      setActive?: (opts: { session: string | null }) => Promise<void>;
+      signUp?: { createdUserId?: string | null } | null;
+    }> => {
+      throw new Error("Sign-in is disabled in the personal version");
     },
   };
 }
 
-function BypassProvider({ children }: { children?: React.ReactNode }) {
+export function ClerkProvider({ children }: { children?: React.ReactNode }) {
   return <>{children}</>;
 }
-
-export const useAuth = (
-  AUTH_BYPASS ? useBypassAuth : Clerk.useAuth
-) as typeof Clerk.useAuth;
-export const useUser = (
-  AUTH_BYPASS ? useBypassUser : Clerk.useUser
-) as typeof Clerk.useUser;
-export const useClerk = (
-  AUTH_BYPASS ? useBypassClerk : Clerk.useClerk
-) as typeof Clerk.useClerk;
-export const useSSO = (
-  AUTH_BYPASS ? useBypassSSO : Clerk.useSSO
-) as typeof Clerk.useSSO;
-export const ClerkProvider = (
-  AUTH_BYPASS ? BypassProvider : Clerk.ClerkProvider
-) as typeof Clerk.ClerkProvider;

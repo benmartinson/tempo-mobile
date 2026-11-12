@@ -33,39 +33,13 @@ import {
   fetchUserCredits,
 } from "./src/requests";
 import { useUIStateSync } from "./src/hooks/useUIStateSync";
-import { AUTH_BYPASS, ClerkProvider, useAuth } from "./lib/auth";
-import { tokenCache as clerkTokenCache } from "@clerk/clerk-expo/token-cache";
+import { ClerkProvider, useAuth } from "./lib/auth";
 import { ActivityIndicator, View } from "react-native";
 import TopNavBar from "./src/components/TopNavBar";
 import VideoList from "./src/components/video-list/VideoList";
 import NavTabBanner from "./src/components/common/NavTabBanner";
 import SelectedVideoPage from "./src/components/common/SelectedVideoPage";
 import Constants from "expo-constants";
-const tokenCache = clerkTokenCache
-  ? {
-      getToken: async (key: string) => {
-        const result = await clerkTokenCache.getToken(key);
-        if (!result) {
-          console.warn(
-            "[Auth] tokenCache.getToken returned null for key:",
-            key,
-          );
-        }
-        return result;
-      },
-      saveToken: async (key: string, token: string) => {
-        console.log("[Auth] tokenCache.saveToken for key:", key);
-        return clerkTokenCache.saveToken(key, token);
-      },
-    }
-  : undefined;
-
-const publishableKey =
-  Constants.expoConfig?.extra?.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
-if (!publishableKey && !AUTH_BYPASS) {
-  throw new Error("EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY is not set");
-}
-
 const Stack = createNativeStackNavigator();
 
 // Main app component — serves both authenticated and guest users
@@ -242,7 +216,7 @@ const AppNavigator: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
+    <ClerkProvider>
       <Provider store={store}>
         <NavigationContainer>
           <AppNavigator />

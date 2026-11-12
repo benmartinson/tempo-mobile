@@ -1,26 +1,14 @@
 import { BACKEND_BASE_URL } from "./streaming_helpers";
 
-type GlobalCache = typeof globalThis & {
-  __tempoClerkSupabaseGetToken?: (opts?: {
-    template?: string;
-  }) => Promise<string | null>;
-};
-
 /**
- * Fetch wrapper that injects the Clerk JWT into backend API requests.
+ * Fetch wrapper for backend API requests. The personal version sends no
+ * auth token; the local backend treats every request as the one user.
  */
 export async function backendFetch(
   path: string,
   init?: RequestInit,
 ): Promise<Response> {
-  const g = globalThis as GlobalCache;
-  const getToken = g.__tempoClerkSupabaseGetToken;
-  const token = getToken ? await getToken({ template: "backend" }) : null;
-
   const headers = new Headers(init?.headers);
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
 
   // Don't set Content-Type for FormData — let the runtime set the multipart boundary
   if (!(init?.body instanceof FormData)) {
@@ -34,7 +22,7 @@ export async function backendFetch(
   const method = init?.method ?? "GET";
   const startedAt = Date.now();
   if (__DEV__) {
-    console.log(`[backend] -> ${method} ${url} (auth: ${token ? "yes" : "no"})`);
+    console.log(`[backend] -> ${method} ${url}`);
   }
 
   try {

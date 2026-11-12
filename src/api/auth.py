@@ -1,16 +1,14 @@
 """
 Authentication and credit-checking dependencies for FastAPI routes.
 
-Uses Clerk-issued JWTs (RS256, "backend" template) verified via JWKS to:
-1. Verify the caller's identity
-2. Query the user_credits table via Supabase REST API (service role key)
+Personal version: there is no sign-in. Every request runs as one fixed user
+(LOCAL_USER_ID), and credits are read from the user_credits table via the
+Supabase REST API (service role key).
 """
 
 import os
 
-import jwt
 import httpx
-from jwt import PyJWKClient
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
@@ -20,20 +18,10 @@ load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL") or os.getenv("EXPO_PUBLIC_SUPABASE_URL")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
-# Clerk JWKS endpoint for verifying JWTs. Must be set explicitly per
-# environment (dev instance at *.clerk.accounts.dev, production at
-# clerk.<yourdomain>) — no default so a misconfigured deploy fails loudly.
-# Personal mode: when LOCAL_USER_ID is set, every request is treated as that
-# user and no JWT is checked. Only for running the backend locally for
-# yourself. Never set it on a deployed server.
-LOCAL_USER_ID = os.getenv("LOCAL_USER_ID") or None
-
-if LOCAL_USER_ID:
-    print(f"[auth] personal mode: all requests run as {LOCAL_USER_ID}, JWTs are not checked")
-    _jwks_client = None
-else:
-    CLERK_JWKS_URL = os.environ["CLERK_JWKS_URL"]
-    _jwks_client = PyJWKClient(CLERK_JWKS_URL, cache_keys=True)
+# Personal version: no sign-in and no JWTs. Every request is treated as one
+# fixed user. Only run this backend locally; never deploy this branch.
+LOCAL_USER_ID = os.getenv("LOCAL_USER_ID") or "local-user"
+print(f"[auth] no sign-in: all requests run as user '{LOCAL_USER_ID}'")
 
 _bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -41,32 +29,8 @@ _bearer_scheme = HTTPBearer(auto_error=False)
 async def verify_jwt(
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
 ) -> str:
-    """Verify the Clerk JWT via JWKS and return the user_id."""
-    if LOCAL_USER_ID:
-        return LOCAL_USER_ID
-
-    if credentials is None:
-        raise HTTPException(status_code=401, detail="Missing authorization token")
-
-    token = credentials.credentials
-    try:
-        signing_key = _jwks_client.get_signing_key_from_jwt(token)
-        payload = jwt.decode(
-            token,
-            signing_key.key,
-            algorithms=["RS256"],
-            options={"verify_aud": False},
-        )
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
-    user_id = payload.get("user_id") or payload.get("sub")
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
-    return user_id
+    """Return the single local user. No token is required or checked."""
+    return LOCAL_USER_ID
 
 
 async def check_credits(user_id: str = Depends(verify_jwt)) -> str:
