@@ -108,7 +108,7 @@ const FullSegmentTranscriptBubble: React.FC<
     [words],
   );
 
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
   const [wordPositions, setWordPositions] = useState<{ [key: number]: number }>(
     {},
   );

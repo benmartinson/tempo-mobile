@@ -50,7 +50,7 @@ const YouTubePlayer = forwardRef<YouTubePlayerHandle, YouTubePlayerProps>(
       startTime,
       onPlayingStateChange,
     } = props;
-    const webViewRef = useRef<WebView>(null);
+    const webViewRef = useRef<WebView<{}>>(null);
     const lastTimeRef = useRef<number>(-1);
     const playingRef = useRef<boolean>(false);
     const staleTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -145,7 +145,7 @@ const YouTubePlayer = forwardRef<YouTubePlayerHandle, YouTubePlayerProps>(
 
     return (
       <View style={styles.container}>
-        <WebView
+        <WebView<{}>
           ref={webViewRef}
           key={`${refreshKey}`}
           source={{ uri: sourceUriRef.current }}

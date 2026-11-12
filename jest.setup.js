@@ -10,6 +10,8 @@ for (const name of [
   "TextEncoderStream",
   "URL",
   "URLSearchParams",
+  "DOMException",
+  "fetch",
   "__ExpoImportMetaRegistry",
   "structuredClone",
 ]) {

@@ -8,7 +8,15 @@ export default {
     userInterfaceStyle: "light",
     newArchEnabled: true,
     scheme: "tempospanish",
-    plugins: ["expo-web-browser", "expo-speech-recognition", "expo-iap"],
+    plugins: [
+      "expo-web-browser",
+      "expo-speech-recognition",
+      "expo-iap",
+      "expo-asset",
+      "expo-audio",
+      "expo-secure-store",
+      "expo-status-bar",
+    ],
     splash: {
       image: "./assets/splash-icon.png",
       resizeMode: "contain",
